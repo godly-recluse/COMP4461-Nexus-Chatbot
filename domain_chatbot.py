@@ -27,7 +27,7 @@ states = {
     'AskScreening': {
         'next': 'AdministerScreening',
         'description': "Providing some preliminary advice/information regarding the user's problems and mental health status and easing into (explicitly) asking the user if they want to be administered a mental health screening assessment to better understand their mental health status. If not, proceed to the state after the next.",
-        'collectedDataName': 'screeningBool'  # Collecting gender
+        'collectedDataName': 'screeningBool'  # Collecting whether user wants to take the screening test
     },
     'AdministerScreening': {
         'next': 'AskMore',
@@ -155,7 +155,7 @@ st.header("Nexus 🤖 - Your Mental Health Companion", divider="grey")
 with st.sidebar:
     # openai_api_key = st.text_input("Azure OpenAI API Key", key="chatbot_api_key", type="password")
     # "[Get an Azure OpenAI API key](https://itsc.hkust.edu.hk/services/it-infrastructure/azure-openai-api-service)"
-    st.image("Chatbot/Nexus.png", caption= "Nexus 🤖 - Your Mental Health Companion", use_column_width=True)
+    st.image("COMP4461-Nexus-Chatbot/Nexus.png", caption= "Nexus 🤖 - Your Mental Health Companion", use_column_width=True)
     st.markdown("<h1 style='text-align: left;'> About </h1>", unsafe_allow_html= True)
     st.markdown("""
     <p style='text-align: left;'> Hi there! I'm Nexus, your mental health companion here to support you through 
@@ -180,9 +180,9 @@ if "messages" not in st.session_state:
 
 for msg in st.session_state.messages:
     if msg["role"] == "assistant":
-        st.chat_message(msg["role"], avatar="Chatbot/Nexus.png").write(msg["content"]['resp'])
+        st.chat_message(msg["role"], avatar="COMP4461-Nexus-Chatbot/Nexus.png").write(msg["content"]['resp'])
     else:
-        st.chat_message(msg["role"], avatar="Chatbot/Student.jpg").write(msg["content"]['resp'])
+        st.chat_message(msg["role"], avatar="COMP4461-Nexus-Chatbot/Student.jpg").write(msg["content"]['resp'])
 
 if user_resp := st.chat_input():
     # if not openai_api_key:
@@ -192,7 +192,7 @@ if user_resp := st.chat_input():
     st.session_state.messages.append(
         {"role": "user", "content": {'prompt': create_model_prompt(user_resp), 'resp': user_resp}}
     )
-    st.chat_message("user", avatar="Chatbot/Student.jpg").write(user_resp)
+    st.chat_message("user", avatar="COMP4461-Nexus-Chatbot/Student.jpg").write(user_resp)
 
     # setting up the OpenAI model
     client = AzureOpenAI(
@@ -213,7 +213,7 @@ if user_resp := st.chat_input():
     model_resp['prompt'] = json.dumps(model_resp)
 
     st.session_state.messages.append({"role": "assistant", "content": model_resp})
-    st.chat_message("assistant", avatar="Chatbot/Nexus.png").write(model_resp['resp'])
+    st.chat_message("assistant", avatar="COMP4461-Nexus-Chatbot/Nexus.png").write(model_resp['resp'])
 
     # file = None
 
@@ -249,7 +249,7 @@ if user_resp := st.chat_input():
     #                 model_resp['prompt'] = json.dumps(model_resp)
 
     #                 st.session_state.messages.append({"role": "assistant", "content": model_resp})
-    #                 st.chat_message("assistant", avatar="Chatbot/Nexus.png").write(model_resp['resp'])
+    #                 st.chat_message("assistant", avatar="/Nexus.png").write(model_resp['resp'])
 
     #         elif cols[2].button_clicked:
     #             client = AzureOpenAI(
