@@ -16,24 +16,24 @@ initial_content['prompt'] = json.dumps(initial_content)
 states = {
     'MentalHealth': {
         'next': 'CollectDiagnosis',
-        'description': "Ask the user how they are doing and ask what problems they may be facing, if any.",
+        'description': "Ask the user how they are doing and ask what problems they may be facing.",
         'collectedDataName': 'userInformation'
     },
     'CollectDiagnosis': {
         'next': 'AskScreening',
-        'description': "Ask the user if they feel they have a particular mental illness, or if they have been diagnosed with any mental health issues before. Make them feel comfortable with answering the question and utilise this information to provide better support. Be empathetic and ask 1-2 follow-up questions about their life, if needed.",
+        'description': "Ask the user if they feel they have a (specific) mental illness, or if they have been diagnosed with any mental health issues before.",
         'collectedDataName': 'status'  # Collecting diagnosis status
     },
     'AskScreening': {
-        'next': 'AdministerScreening',
-        'description': "Providing some preliminary advice/information regarding the user's problems and mental health status and easing into (explicitly) asking the user if they want to be administered a mental health screening assessment to better understand their mental health status. If not, proceed to the state after the next.",
+        'next': 'AskMore',
+        'description': "Providing some preliminary advice/information regarding the user's problems and mental health status and easing into (explicitly) asking the user if they want to be administered a mental health screening assessment (regarding their specific mental illness) to better understand their mental health status. If not, still proceed to the next state.",
         'collectedDataName': 'screeningBool'  # Collecting whether user wants to take the screening test
     },
-    'AdministerScreening': {
-        'next': 'AskMore',
-        'description': "If the user wants to take the screening test (from previous response), administer a mental health screening assessment for the particular mental health issue they are facing. Inform the user which test you are administering them, chosen in accordance with their previous responses. The user should be able to skip the test if they don't want to take it or ask for a list of screening tests they can choose from.",
-        'collectedDataName': 'screeningResult'  # Collecting screening result
-    },
+    # 'AdministerScreening': {
+    #     'next': 'AskMore',
+    #     'description': "If the user wants to take the screening test (from previous response), administer a mental health screening assessment for the particular mental health issue they are facing. Inform the user which test you are administering them, chosen in accordance with their previous responses. The user should be able to skip the test if they don't want to take it or ask for a list of screening tests they can choose from.",
+    #     'collectedDataName': 'screeningResult'  # Collecting screening result
+    # },
     'AskMore': {
         'next': 'GiveAdvice',
         'description': "Ask the user if there is anything else about their life or issues they want to share. Frame specific questions based on what has already been shared.",
@@ -46,7 +46,21 @@ states = {
     # },
     'GiveAdvice': {
         'next': 'Unhandled',
-        'description': "Give the user comprehensive advice based on the information they have shared and the screening results. Give tangible tips to manage their situation and support their mental health. Encourage them to keep journaling with you and keep you in the loop. End the conversation by providing them with the right resources or asking if they need further help.",
+        'description': """Give the user comprehensive advice based on the information they have shared and the screening results. 
+                        Give tangible tips to manage their situation and support their mental health. Encourage them to keep journaling 
+                        with you and keep you in the loop. Provide them with the right resources. Lastly and most importantly, recommend 
+                        the student to set an appointment with the best suited counselor (according to your judgement) from the following 
+                        list: 
+                        1. Dr. Jason Kripki (Counselor, 10 years experience, specializes in anxiety and depression),
+                        2. Dr. Robert Balaski (Counselor, 5 years experience, specializes in relationship issues), 
+                        3. Dr. Alex Smith (Counselor, 7 years experience, specializes in imposter syndrome), 
+                        4. Dr. Sarah Johnson (Counselor, 3 years experience, specializes in stress management),
+                        5. Dr. Michael Brown (Counselor, 8 years experience, specializes in academic stress), 
+                        6. Dr. Emily Wilson (Counselor, 6 years experience, specializes in career counseling),
+                        7. Dr. David Lee (Counselor, 4 years experience, specializes in self-esteem issues), 
+                        8. Dr. Maria Garcia (Counselor, 9 years experience, specializes in LGBTQ+ issues), 
+                        9. Dr. Robert Martinez (Counselor, 2 years experience, specializes in family issues),
+                        10. Dr. Laura Adams (Counselor, 1 year experience, specializes in grief counseling).""",
         'collectedDataName': None
     },
     'Unhandled': {
@@ -89,10 +103,9 @@ def create_model_prompt(user_content):
 
     prompt = f"""
     You are a chatbot (named 'Nexus') designed to support university students with their mental health. 
-    If they type 'About' or 'Help', provide them with a brief description of your capabilities and how you can help them.
 
     Following is your description/introduction: 
-    "Hi there! I'm Nexus, your mental health companion here to support you through any mental health challenges you may be 
+    "I'm Nexus, your mental health companion here to support you through any mental health challenges you may be 
     facing during this unique time of your life. As a university student, I know you're juggling academics, social life, future 
     planning, and so much more. It can definitely feel overwhelming at times! I'm here to listen without judgement and provide a 
     supportive ear whenever you need to get things off your chest. Whether you're dealing with stress, anxiety, depression, 
@@ -105,6 +118,7 @@ def create_model_prompt(user_content):
     space for you to unload. Don't hesitate to reach out whenever you need support - I'm just a message away. Let's work 
     together to help you thrive during this incredible journey."
 
+    Following is a framework to guide your conversation with the user:
     Answer with a json object in a string without linebreaks, with a isNextState field as a boolean value, a resp field with text value, a data field as a string value (the value of the current collected data, if applicable, not all the collected data till now).
     The current state of your conversation with the user is {current_state}, which means {state_description}. 
     If the goal of the current state is satisfied, the next state is {next_state}, which means {next_state_description}.
@@ -114,7 +128,11 @@ def create_model_prompt(user_content):
     Decide whether the goal of the current state is satisfied. If yes, make isNextState as true, otherwise as false. 
     If the isNextState is true, and the current state is about collecting data, put the collected data value (only the value of the current data collection goal) in the data field, otherwise leave it empty.
     Provide your response to the user in the resp field. 
-    If isNextState is true, proceed with the action of the next state; otherwise, try to reach the goal by giving a response.   
+    If isNextState is true, proceed with the action of the next state; otherwise, try to reach the goal by giving a response.
+    It is important to note that even if the user gives a negative response to a question, you should still proceed with the next state.
+
+    Dont ask too many questions in one response as that will confuse the user. Be focused in your responses. Split up a state into multiple responses if needed. 
+    Additionally, keep moving forward through the states (while maintaining a natural conversation) listed in the states dictionary till you reach the conclusion of the conversation where you give final recommendations on resources and further help to the user.
     """
 
     return prompt
@@ -146,14 +164,14 @@ if 'current_state' not in st.session_state:
     st.session_state['current_state'] = 'MentalHealth'
     st.session_state['user_data'] = {}
 
-openai_api_key = "2c9ff8b0a45f4314b050f061aa42c715"
+# openai_api_key = "2c9ff8b0a45f4314b050f061aa42c715"
 
 model_name = "gpt-35-turbo"
 
 st.header("Nexus 🤖 - Your Mental Health Companion", divider="grey")
 
 with st.sidebar:
-    # openai_api_key = st.text_input("Azure OpenAI API Key", key="chatbot_api_key", type="password")
+    openai_api_key = st.text_input("Azure OpenAI API Key", key="chatbot_api_key", type="password")
     # "[Get an Azure OpenAI API key](https://itsc.hkust.edu.hk/services/it-infrastructure/azure-openai-api-service)"
     st.image("Nexus.png", caption= "Nexus 🤖 - Your Mental Health Companion", use_column_width=True)
     st.markdown("<h1 style='text-align: left;'> About </h1>", unsafe_allow_html= True)
@@ -185,9 +203,9 @@ for msg in st.session_state.messages:
         st.chat_message(msg["role"], avatar="Student.jpg").write(msg["content"]['resp'])
 
 if user_resp := st.chat_input():
-    # if not openai_api_key:
-        # st.info("Please add your Azure OpenAI API key to continue.")
-        # st.stop()
+    if not openai_api_key:
+        st.info("Please add your Azure OpenAI API key to continue.")
+        st.stop()
 
     st.session_state.messages.append(
         {"role": "user", "content": {'prompt': create_model_prompt(user_resp), 'resp': user_resp}}
