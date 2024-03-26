@@ -24,26 +24,31 @@ states = {
         'description': "Ask the user if they feel they have a (specific) mental illness, or if they have been diagnosed with any mental health issues before.",
         'collectedDataName': 'status'  # Collecting diagnosis status
     },
-    'AskScreening': {
-        'next': 'AskMore',
-        'description': "Providing some preliminary advice/information regarding the user's problems and mental health status and easing into (explicitly) asking the user if they want to be administered a mental health screening assessment (regarding their specific mental illness) to better understand their mental health status. If not, still proceed to the next state.",
-        'collectedDataName': 'screeningBool'  # Collecting whether user wants to take the screening test
-    },
     # 'AdministerScreening': {
     #     'next': 'AskMore',
     #     'description': "If the user wants to take the screening test (from previous response), administer a mental health screening assessment for the particular mental health issue they are facing. Inform the user which test you are administering them, chosen in accordance with their previous responses. The user should be able to skip the test if they don't want to take it or ask for a list of screening tests they can choose from.",
     #     'collectedDataName': 'screeningResult'  # Collecting screening result
     # },
-    'AskMore': {
-        'next': 'GiveAdvice',
-        'description': "Ask the user if there is anything else about their life or issues they want to share. Frame specific questions based on what has already been shared.",
-        'collectedDataName': 'moreBool'  # Collecting whether user wants to share more
-    },
+    
     # 'UploadJournal': {
     #     'next': 'AskScreening',
     #     'description': "If the user wants to upload a journal, ask them to upload the journal file (generate the UI to faciliate this). If not, they can type out their journal in the chat. If neither, proceed to give advice based on chat history.",
     #     'collectedDataName': 'journalDoc'  # Collecting journal content
     # },
+    'AskScreening': {
+        'next': 'AskMore',
+        'description': """Providing some preliminary advice/information regarding the user's problems and mental health status 
+                        and easing into (explicitly) asking the user if they want to be administered a mental health screening 
+                        assessment (regarding their specific mental illness) to better understand their mental health status. 
+                        If not, still proceed to the next state.""",
+        'collectedDataName': 'screeningBool'  # Collecting whether user wants to take the screening test
+    },
+    'AskMore': {
+        'next': 'GiveAdvice',
+        'description': """Ask the user if there is anything else about their life or issues they want to share. Frame specific 
+        questions based on what has already been shared.""",
+        'collectedDataName': 'moreBool'  # Collecting whether user wants to share more
+    },
     'GiveAdvice': {
         'next': 'Unhandled',
         'description': """Give the user comprehensive advice based on the information they have shared and the screening results. 
